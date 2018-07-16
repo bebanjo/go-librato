@@ -1,6 +1,7 @@
 package librato
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -89,6 +90,35 @@ func (s *SpacesService) GetChart(spaceID, chartID uint) (*SpaceChart, *http.Resp
 	}
 
 	return c, resp, err
+}
+
+// GetChartByName returns a chart given a Librato Space and Chart name.
+//
+// Librato API docs: http://dev.librato.com/v1/get/spaces/:id/charts
+func (s *SpacesService) GetChartByName(spaceID uint, name string) (*SpaceChart, *http.Response, error) {
+	u := fmt.Sprintf("spaces/%d/charts", spaceID)
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	charts := new([]SpaceChart)
+	resp, err := s.client.Do(req, charts)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	if len(*charts) < 1 {
+		return nil, nil, errors.New("chart not found")
+	}
+
+	for _, c := range *charts {
+		if *c.Name == name {
+			return &c, resp, err
+		}
+	}
+
+	return nil, nil, errors.New("chart not found")
 }
 
 // UpdateChart updates a chart.

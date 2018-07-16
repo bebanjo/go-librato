@@ -1,6 +1,7 @@
 package librato
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -76,6 +77,39 @@ func (s *SpacesService) Get(id uint) (*Space, *http.Response, error) {
 	}
 
 	return sp, resp, err
+}
+
+// Get fetches a space based on the provided Space name.
+//
+// Librato API docs: http://dev.librato.com/v1/get/spaces?name=ops
+func (s *SpacesService) GetByName(name string) (*Space, *http.Response, error) {
+	u, err := urlWithOptions("spaces", &SpaceListOptions{Name: name})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var spacesResp listSpacesResponse
+	resp, err := s.client.Do(req, &spacesResp)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	if len(spacesResp.Spaces) < 1 {
+		return nil, nil, errors.New("space not found")
+	}
+
+	for _, s := range spacesResp.Spaces {
+		if *s.Name == name {
+			return &s, resp, err
+		}
+	}
+
+	return &spacesResp.Spaces[0], resp, err
 }
 
 // Create a space with a given name.
