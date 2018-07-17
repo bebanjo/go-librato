@@ -49,9 +49,14 @@ func (s *SpacesService) CreateChartSnapshot(chartID uint, duration int, endTime 
 		unixEndTime = &s
 	}
 
+	var durationValue *int
+	if duration != 0 {
+		durationValue = &duration
+	}
+
 	chartSnapshot := &ChartSnapshot{
 		Subject:  chartSnapshotSubject,
-		Duration: &duration,
+		Duration: durationValue,
 		EndTime:  unixEndTime,
 	}
 
