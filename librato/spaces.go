@@ -83,6 +83,10 @@ func (s *SpacesService) Get(id uint) (*Space, *http.Response, error) {
 //
 // Librato API docs: http://dev.librato.com/v1/get/spaces?name=ops
 func (s *SpacesService) GetByName(name string) (*Space, *http.Response, error) {
+	if name == "" {
+		return nil, nil, errors.New("space name cannot be empty")
+	}
+
 	u, err := urlWithOptions("spaces", &SpaceListOptions{Name: name})
 	if err != nil {
 		return nil, nil, err

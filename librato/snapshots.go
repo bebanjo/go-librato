@@ -11,7 +11,7 @@ import (
 type ChartSnapshot struct {
 	Subject  *ChartSnapshotSubject `json:"subject,omitempty"`
 	Duration *int                  `json:"duration,omitempty"`
-	EndTime  *time.Time            `json:"end_time,omitempty"`
+	EndTime  *string               `json:"end_time,omitempty"`
 	Image    *string               `json:"image_href,omitempty"`
 	URL      *string               `json:"href,omitempty"`
 }
@@ -42,10 +42,17 @@ func (s *SpacesService) CreateChartSnapshot(chartID uint, duration int, endTime 
 		Chart: chartSnaphotInfo,
 	}
 
+	var unixEndTime *string
+	if endTime != nil {
+		t := *endTime
+		s := fmt.Sprintf("%d", t.Unix())
+		unixEndTime = &s
+	}
+
 	chartSnapshot := &ChartSnapshot{
 		Subject:  chartSnapshotSubject,
 		Duration: &duration,
-		EndTime:  endTime,
+		EndTime:  unixEndTime,
 	}
 
 	req, err := s.client.NewRequest("POST", "snapshots", chartSnapshot)
@@ -69,7 +76,6 @@ func (s *SpacesService) GetChartSnapshot(snapshotURL string) (*ChartSnapshot, *h
 	snapshotSplit := strings.Split(snapshotURL, "/")
 	snapshotID := snapshotSplit[len(snapshotSplit)-1]
 	u := fmt.Sprintf("snapshots/%s", snapshotID)
-	fmt.Printf("%#v\n", u)
 
 	req, err := s.client.NewRequest("GET", u, nil)
 	if err != nil {
